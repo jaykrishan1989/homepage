@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Monitoring | Dronemark</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --navy: #1a2b49;
+            --blue-accent: #2c5282;
+            --slate: #4a5568;
+            --border: #e2e8f0;
+            --white: #ffffff;
+            --alert-orange: #f59e0b;
+            --success-green: #22c55e;
+            --transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none; }
+
+        #entry-flash {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 10000;
+            transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+            pointer-events: none;
+        }
+
+        body { 
+            background-color: var(--white);
+            color: var(--navy);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        #cursor {
+            width: 30px; height: 30px; border: 1px solid var(--navy); border-radius: 50%;
+            position: fixed; pointer-events: none; z-index: 9999; transition: transform 0.1s ease;
+            display: flex; align-items: center; justify-content: center;
+        }
+        #cursor::after { content: ''; width: 4px; height: 4px; background: var(--blue-accent); border-radius: 50%; }
+
+        nav {
+            padding: 1.2rem 10%;
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 1000;
+        }
+
+        .back-link {
+            text-decoration: none; color: var(--navy);
+            font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+            letter-spacing: 2px; font-weight: 700;
+        }
+
+        .event-interface {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            height: calc(100vh - 65px);
+            overflow: hidden;
+        }
+
+        .main-content { padding: 40px; overflow-y: auto; background: #f8fafc; }
+
+        .metrics-sidebar {
+            background: #e2e8f0;
+            padding: 30px 20px;
+            border-left: 1px solid var(--border);
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .metrics-item { margin-bottom: 25px; font-size: 0.7rem; }
+        .metrics-item label { color: var(--slate); display: block; margin-bottom: 5px; text-transform: uppercase; }
+        .metrics-item span { color: var(--navy); font-weight: 700; }
+
+        .alerts-console {
+            background: var(--navy); color: white; padding: 15px;
+            font-size: 0.65rem; line-height: 1.5; height: 150px; overflow-y: auto;
+        }
+
+        .header-unit { margin-bottom: 40px; border-left: 5px solid var(--navy); padding-left: 20px; }
+        .header-unit h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: -1px; }
+
+        .zone-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
+        .zone-card {
+            position: relative; aspect-ratio: 16/9; background: #fff;
+            border: 1px solid var(--border); overflow: hidden; transition: var(--transition);
+        }
+        .zone-card:hover { border-color: var(--blue-accent); }
+
+        .zone-image {
+            width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+            background: #eee; filter: grayscale(100%); transition: 0.5s;
+        }
+        .zone-card:hover .zone-image { filter: grayscale(0%); }
+
+        .zone-overlay {
+            position: absolute; bottom: 0; left: 0; width: 100%; padding: 15px;
+            background: linear-gradient(transparent, rgba(26, 43, 73, 0.9));
+            font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: white;
+            transform: translateY(100%); transition: var(--transition);
+        }
+        .zone-card:hover .zone-overlay { transform: translateY(0); }
+
+        .btn-command {
+            padding: 10px 20px; background: var(--navy); color: white; border: none;
+            font-weight: 700; font-size: 0.8rem; margin-top: 20px; margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="entry-flash"></div>
+    <div id="cursor"></div>
+
+    <nav>
+        <a href="index.html" class="back-link" id="exit-btn"><i class="fas fa-arrow-left"></i> RETURN_TO_SYSTEM_INDEX</a>
+        <div style="font-family: 'JetBrains Mono'; font-size: 0.65rem; font-weight: 700;">
+            MODULE: <span style="color: var(--navy);">EVENT_SURVEILLANCE_v2.0</span>
+        </div>
+    </nav>
+
+    <main class="event-interface">
+        <section class="main-content">
+            <div class="header-unit">
+                <h1>Event Monitoring: Crowd Flow</h1>
+                <p>Real-time aerial surveillance providing critical insights for crowd management and safety.</p>
+            </div>
+
+            <div class="zone-grid">
+                <div class="zone-card">
+                    <div class="zone-image"><i class="fas fa-users fa-3x"></i></div>
+                    <div class="zone-overlay">ZONE: MAIN_STAGE <br> DENSITY: <span style="color:#4ade80">OPTIMAL</span></div>
+                </div>
+                <div class="zone-card">
+                    <div class="zone-image"><i class="fas fa-gate fa-3x"></i></div>
+                    <div class="zone-overlay">ZONE: NORTH_GATE <br> FLOW: <span style="color:#f59e0b">HEAVY</span></div>
+                </div>
+                <div class="zone-card">
+                    <div class="zone-image"><i class="fas fa-car fa-3x"></i></div>
+                    <div class="zone-overlay">ZONE: PARKING_B <br> CAPACITY: <span style="color:#4ade80">60%</span></div>
+                </div>
+            </div>
+
+            <button class="btn-command">GENERATE ANALYTICS</button>
+            <button class="btn-command" style="background:#2c5282">BROADCAST TO GROUND</button>
+        </section>
+
+        <aside class="metrics-sidebar">
+            <div>
+                <div class="metrics-item">
+                    <label>EVENT_TIMER</label>
+                    <span id="event-timer">00:00:00</span>
+                </div>
+                <div class="metrics-item">
+                    <label>LIVE_CROWD_COUNT</label>
+                    <span id="crowd-count">8,240</span>
+                </div>
+                <div class="metrics-item">
+                    <label>SYSTEM_STATUS</label>
+                    <span style="color:#22c55e">ACTIVE</span>
+                </div>
+            </div>
+            <div class="alerts-console" id="console">
+                <p>> LOG: STARTING SURVEILLANCE...</p>
+                <p>> STATUS: ALL ZONES CLEAR</p>
+            </div>
+        </aside>
+    </main>
+
+    <script>
+        const cursor = document.getElementById('cursor');
+        document.addEventListener('mousemove', e => {
+            cursor.style.left = e.clientX - 15 + 'px';
+            cursor.style.top = e.clientY - 15 + 'px';
+        });
+
+        window.addEventListener('load', () => {
+            setTimeout(() => { document.getElementById('entry-flash').style.opacity = '0'; }, 100);
+            
+            // Simulation Logic
+            let seconds = 0;
+            let crowd = 8240;
+            setInterval(() => {
+                seconds++;
+                let h = Math.floor(seconds/3600).toString().padStart(2,'0');
+                let m = Math.floor((seconds%3600)/60).toString().padStart(2,'0');
+                let s = (seconds%60).toString().padStart(2,'0');
+                document.getElementById('event-timer').innerText = `${h}:${m}:${s}`;
+                
+                crowd += Math.floor(Math.random() * 5) - 2;
+                document.getElementById('crowd-count').innerText = crowd.toLocaleString();
+            }, 1000);
+        });
+
+        document.getElementById('exit-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('entry-flash').style.opacity = '1';
+            setTimeout(() => { window.location.href = this.href; }, 400);
+        });
+    </script>
+</body>
+</html>

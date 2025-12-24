@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regulatory Compliance | Dronemark</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --navy: #0f172a; /* Deepened for corporate look */
+            --blue-accent: #38bdf8;
+            --corporate-blue: #1e40af;
+            --slate: #64748b;
+            --border: #e2e8f0;
+            --white: #ffffff;
+            --transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Lenis Smooth Scroll Recommended CSS */
+        html.lenis { height: auto; }
+        .lenis.lenis-smooth { scroll-behavior: auto !important; }
+        .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+        .lenis.lenis-stopped { overflow: hidden; }
+        .lenis.lenis-scrolling iframe { pointer-events: none; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none; }
+
+        #entry-flash {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--navy); z-index: 10000;
+            transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+            pointer-events: none;
+        }
+
+        body { 
+            background-color: var(--white); 
+            color: var(--navy); 
+            font-family: 'Inter', sans-serif; 
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        #cursor {
+            width: 30px; height: 30px; border: 1px solid var(--corporate-blue); border-radius: 50%;
+            position: fixed; pointer-events: none; z-index: 9999; transition: transform 0.1s ease;
+            display: flex; align-items: center; justify-content: center;
+        }
+        #cursor::after { content: ''; width: 4px; height: 4px; background: var(--blue-accent); border-radius: 50%; }
+
+        nav {
+            padding: 1.2rem 10%; display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px); border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 1000;
+        }
+
+        .back-link { text-decoration: none; color: var(--navy); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 700; }
+
+        .container { padding: 80px 10%; max-width: 1200px; margin: 0 auto; }
+
+        .header-unit { margin-bottom: 60px; border-left: 5px solid var(--corporate-blue); padding-left: 30px; }
+        .header-unit h1 { font-size: 3rem; font-weight: 800; letter-spacing: -2px; line-height: 1; margin-top: 10px; }
+
+        /* Comparison Table */
+        .comparison-table {
+            width: 100%; border-collapse: collapse; margin-top: 40px;
+            font-size: 0.9rem; border: 1px solid var(--border);
+            background: var(--white);
+        }
+        .comparison-table th {
+            background: #f8fafc; text-align: left; padding: 25px 20px;
+            border-bottom: 2px solid var(--navy); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1.5px;
+        }
+        .comparison-table td { padding: 25px 20px; border-bottom: 1px solid var(--border); vertical-align: top; }
+        .comparison-table tr:hover { background: #f8fafc; transition: background 0.3s ease; }
+
+        /* Professional Certification Block */
+        .cert-block {
+            margin-top: 100px; padding: 60px; background: var(--navy); color: white;
+            display: grid; grid-template-columns: 100px 1fr; gap: 40px; align-items: center;
+            border-radius: 4px; position: relative; overflow: hidden;
+        }
+        .cert-block::before {
+            content: 'ADVANCED_OPS'; position: absolute; top: 20px; right: -20px;
+            font-family: 'JetBrains Mono'; font-size: 5rem; font-weight: 800;
+            opacity: 0.03; pointer-events: none;
+        }
+        .cert-icon { font-size: 3.5rem; color: var(--blue-accent); text-align: center; }
+        .cert-text h2 { font-size: 1.4rem; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; color: var(--blue-accent); }
+        .cert-text p { opacity: 0.9; font-size: 1rem; line-height: 1.8; font-weight: 400; }
+
+        .tag {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; font-weight: 700;
+            padding: 4px 10px; background: var(--navy); color: white; border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="entry-flash"></div>
+    <div id="cursor"></div>
+
+    <nav>
+        <a href="index.html" class="back-link" id="exit-btn"><i class="fas fa-arrow-left"></i> RETURN_TO_SYSTEM_INDEX</a>
+        <div style="font-family: 'JetBrains Mono'; font-size: 0.65rem; font-weight: 700; color: var(--slate);">
+            REGULATORY_AFFAIRS // <span style="color: var(--corporate-blue);">PART_IX_CAR</span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header-unit">
+            <span class="tag">TRANSPORT CANADA COMPLIANT</span>
+            <h1>Operations Framework</h1>
+            <p style="margin-top: 20px; color: var(--slate); max-width: 700px;">
+                Dronemark operates under the strict mandate of the Canadian Aviation Regulations (CARs) Part IX, ensuring institutional-grade safety and legal certainty in every mission.
+            </p>
+        </div>
+
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th style="width: 25%;">Operational Category</th>
+                    <th style="width: 37%;">Advanced Operations</th>
+                    <th style="width: 37%;">Complex (SFOC) Operations</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Airspace Access</strong></td>
+                    <td>Controlled airspace (Class C, D, E) with NAV CANADA coordination.</td>
+                    <td>Restricted airspace or specialized zones requiring specific permits.</td>
+                </tr>
+                <tr>
+                    <td><strong>Proximity to People</strong></td>
+                    <td>Within 30m horizontally of bystanders (down to 5m with safety tech).</td>
+                    <td>Directly over assembly of people or within restricted safety buffers.</td>
+                </tr>
+                <tr>
+                    <td><strong>Mission Scope</strong></td>
+                    <td>Standard infrastructure inspection, urban surveying, and SAR.</td>
+                    <td>BVLOS (Beyond Visual Line of Sight) or high-altitude specialized missions.</td>
+                </tr>
+                <tr>
+                    <td><strong>Regulatory Trigger</strong></td>
+                    <td>CAR 901.62 Compliance.</td>
+                    <td>Special Flight Operations Certificate (SFOC) required per mission.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="cert-block">
+            <div class="cert-icon">
+                <i class="fas fa-shield-halved"></i>
+            </div>
+            <div class="cert-text">
+                <h2>Certified RPAS Professionals</h2>
+                <p>
+                    Being "Certified RPAS" (Remotely Piloted Aircraft System) means our pilots have passed Transport Canada's advanced examinations and flight reviews. 
+                    Unlike hobbyists, we are legally authorized to fly in <strong>busy city centers, near airports, and close to people.</strong> 
+                    This certification is the drone equivalent of a commercial pilot's license—it guarantees that we follow rigorous pre-flight checklists, emergency protocols, and maintenance schedules to protect your assets and the public.
+                </p>
+            </div>
+        </div>
+        
+        <div style="margin-top: 100px; border-top: 1px solid var(--border); padding-top: 40px; color: var(--slate); font-family: 'JetBrains Mono'; font-size: 0.6rem;">
+            SYSTEM_ID: DM-REG-901 // LAST_VERIFICATION: 2025-12-23
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.33/dist/lenis.min.js"></script>
+
+    <script>
+        // 1. Initialize Lenis Smooth Scroll
+        const lenis = new Lenis({
+            duration: 1.2,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // standard expo easing
+            direction: 'vertical',
+            gestureDirection: 'vertical',
+            smooth: true,
+            mouseMultiplier: 1,
+            smoothTouch: false,
+            touchMultiplier: 2,
+            infinite: false,
+        });
+
+        function raf(time) {
+            lenis.raf(time);
+            requestAnimationFrame(raf);
+        }
+        requestAnimationFrame(raf);
+
+        // 2. Cursor Logic
+        const cursor = document.getElementById('cursor');
+        document.addEventListener('mousemove', e => {
+            cursor.style.left = e.clientX - 15 + 'px';
+            cursor.style.top = e.clientY - 15 + 'px';
+        });
+
+        // 3. Entry Flash (Matches Navy Theme)
+        window.addEventListener('load', () => {
+            setTimeout(() => { document.getElementById('entry-flash').style.opacity = '0'; }, 100);
+        });
+
+        // 4. Exit Animation
+        document.getElementById('exit-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('entry-flash').style.opacity = '1';
+            setTimeout(() => { window.location.href = this.href; }, 500);
+        });
+
+        // 5. Interaction Scaling
+        document.querySelectorAll('a, tr, .cert-block').forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.style.transform = 'scale(1.8)');
+            el.addEventListener('mouseleave', () => cursor.style.transform = 'scale(1)');
+        });
+    </script>
+</body>
+</html>

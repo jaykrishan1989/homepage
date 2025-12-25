@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dronemark | Admin Tactical Command</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --navy: #0f172a; --corporate-blue: #1e40af; --slate: #64748b;
+            --bg-light: #f8fafc; --white: #ffffff; --border: #e2e8f0;
+            --accent: #38bdf8; --success: #10b981; --danger: #ef4444;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-light); color: var(--navy); }
+
+        header { 
+            background: var(--navy); color: white; padding: 1rem 5%; 
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 3px solid var(--accent);
+        }
+
+        .admin-grid { display: grid; grid-template-columns: 400px 1fr; height: calc(100vh - 65px); }
+
+        /* --- SIDEBAR --- */
+        .request-list { border-right: 1px solid var(--border); overflow-y: auto; background: var(--white); }
+        .list-header { 
+            padding: 20px; border-bottom: 1px solid var(--border); background: #f1f5f9; 
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        
+        .archive-btn {
+            font-family: 'JetBrains Mono'; font-size: 0.65rem; padding: 6px 12px;
+            cursor: pointer; border: 1px solid var(--border); background: white;
+            font-weight: 800; transition: 0.2s;
+        }
+        .archive-btn.active { background: var(--navy); color: white; }
+
+        .request-item { 
+            padding: 20px; border-bottom: 1px solid var(--border); cursor: pointer; 
+            position: relative; transition: 0.2s; border-left: 4px solid transparent;
+        }
+        .request-item:hover { background: #f8fafc; }
+        .request-item.active { border-left-color: var(--corporate-blue); background: #eff6ff; }
+        
+        .delete-icon {
+            position: absolute; top: 20px; right: 20px; color: var(--slate);
+            font-size: 0.9rem; opacity: 0; transition: 0.2s; z-index: 10;
+        }
+        .request-item:hover .delete-icon { opacity: 1; }
+        .delete-icon:hover { color: var(--danger) !important; transform: scale(1.2); }
+
+        /* --- EDITOR --- */
+        .editor-section { padding: 40px; overflow-y: auto; display: none; }
+        .editor-card { background: white; border: 1px solid var(--border); padding: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        
+        .briefing-box { 
+            background: #f8fafc; padding: 20px; border: 1px solid var(--border); 
+            font-family: 'JetBrains Mono'; font-size: 0.85rem; margin: 20px 0;
+            white-space: pre-wrap; color: #334155;
+        }
+        
+        select, textarea { width: 100%; padding: 15px; border: 1px solid var(--border); margin-bottom: 20px; font-family: inherit; outline: none; }
+        textarea { font-family: 'JetBrains Mono'; height: 150px; }
+
+        .update-btn { 
+            background: var(--corporate-blue); color: white; padding: 15px 30px; 
+            border: none; font-weight: 800; cursor: pointer; text-transform: uppercase;
+        }
+
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--slate); font-family: 'JetBrains Mono'; opacity: 0.5; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div style="font-weight: 800; letter-spacing: -1px;">DRONE<span>MARK</span> // ADMIN_PORTAL</div>
+        <div style="font-family: 'JetBrains Mono'; font-size: 0.7rem;">SYSTEM_CONNECTED</div>
+    </header>
+
+    <div class="admin-grid">
+        <aside class="request-list">
+            <div class="list-header">
+                <span id="list-title" style="font-weight: 800; font-size: 0.7rem; color: var(--slate);">LIVE_QUEUE</span>
+                <button class="archive-btn" id="view-toggle" onclick="toggleArchive()">VIEW_ARCHIVE</button>
+            </div>
+            <div id="list-container"></div>
+        </aside>
+
+        <main class="editor-section" id="editor">
+            <div class="editor-card">
+                <h2 id="view-id" style="color: var(--corporate-blue); font-weight: 800;"></h2>
+                <p id="view-client" style="font-weight: 600; color: var(--slate); font-size: 0.9rem;"></p>
+                <div class="briefing-box" id="view-briefing"></div>
+
+                <label style="font-size: 0.7rem; font-weight: 800; display: block; margin-bottom: 10px;">OPERATIONAL_STATUS</label>
+                <select id="edit-status">
+                    <option value="PENDING_REVIEW">PENDING_REVIEW</option>
+                    <option value="REVIEWED">REVIEWED</option>
+                    <option value="IN_PROGRESS">IN_PROGRESS</option>
+                    <option value="COMPLETED">COMPLETED</option>
+                </select>
+
+                <label style="font-size: 0.7rem; font-weight: 800; display: block; margin-bottom: 10px;">ADMIN_DIRECTIVE</label>
+                <textarea id="edit-notes" placeholder="Messages sent to the client..."></textarea>
+                
+                <button class="update-btn" onclick="updateMission()">Transmit Changes</button>
+            </div>
+        </main>
+
+        <div id="no-selection" class="empty-state">
+            <i class="fas fa-terminal" style="font-size: 2rem; margin-bottom: 15px;"></i>
+            <span>SELECT_MISSION_PARAMETERS</span>
+        </div>
+    </div>
+
+    <script>
+        const _supabase = supabase.createClient('https://udlljpqgooojcemrclms.supabase.co', 'sb_publishable_QM9w45AxLPP3L4RtPHYs_A_Zj3GOH5m');
+        
+        let missions = [];
+        let viewingArchive = false;
+        let selectedId = null;
+
+        async function fetchMissions() {
+            // SAFE FETCH: Attempts to filter by is_deleted, if it fails, it fetches everything
+            let query = _supabase.from('service_requests').select('*');
+            
+            // This is where the filter happens
+            query = query.eq('is_deleted', viewingArchive);
+
+            const { data, error } = await query.order('created_at', { ascending: false });
+
+            if (error) {
+                console.error("Fetch Error:", error);
+                // If it fails because the column is missing, fetch without the filter
+                const retry = await _supabase.from('service_requests').select('*').order('created_at', { ascending: false });
+                missions = retry.data || [];
+            } else {
+                missions = data || [];
+            }
+            renderList();
+        }
+
+        function renderList() {
+            const container = document.getElementById('list-container');
+            if (missions.length === 0) {
+                container.innerHTML = '<div style="padding:20px; font-size:0.7rem; font-family:JetBrains Mono;">EMPTY_DATA_SET</div>';
+                return;
+            }
+
+            container.innerHTML = missions.map(m => `
+                <div class="request-item ${selectedId === m.id ? 'active' : ''}" onclick="selectMission('${m.id}')">
+                    <i class="fas ${viewingArchive ? 'fa-undo' : 'fa-times'} delete-icon" onclick="handleDeleteAction(event, '${m.id}')"></i>
+                    <div style="font-weight: 800; color: var(--corporate-blue); font-family: 'JetBrains Mono'; font-size: 0.7rem;">REQ_${m.id.substring(0,6).toUpperCase()}</div>
+                    <div style="font-weight: 700; margin-top: 4px;">${m.client_name || 'ANONYMOUS'}</div>
+                    <div style="font-size: 0.65rem; color: var(--slate); margin-top: 4px;">${m.status}</div>
+                </div>
+            `).join('');
+        }
+
+        function toggleArchive() {
+            viewingArchive = !viewingArchive;
+            document.getElementById('view-toggle').classList.toggle('active');
+            document.getElementById('list-title').innerText = viewingArchive ? 'ARCHIVE_VIEW' : 'LIVE_QUEUE';
+            fetchMissions();
+        }
+
+        function selectMission(id) {
+            selectedId = id;
+            const m = missions.find(x => x.id === id);
+            document.getElementById('no-selection').style.display = 'none';
+            document.getElementById('editor').style.display = 'block';
+            document.getElementById('view-id').innerText = `MISSION: REQ_${id.substring(0,6).toUpperCase()}`;
+            document.getElementById('view-client').innerText = `CLIENT_ENTITY: ${m.client_name}`;
+            document.getElementById('view-briefing').innerText = m.comments || "[ NO MISSION BRIEFING ]";
+            document.getElementById('edit-status').value = m.status;
+            document.getElementById('edit-notes').value = m.admin_notes || "";
+            renderList();
+        }
+
+        async function handleDeleteAction(event, id) {
+            event.stopPropagation();
+            const action = viewingArchive ? "RESTORE" : "ARCHIVE";
+            const confirmAction = confirm(`WARNING: Are you sure you want to ${action} this ticket?`);
+            
+            if (confirmAction) {
+                // Try soft delete first
+                const { error } = await _supabase
+                    .from('service_requests')
+                    .update({ is_deleted: !viewingArchive })
+                    .eq('id', id);
+
+                if (error) {
+                    // FALLBACK: If column is missing, offer permanent delete
+                    const force = confirm("The Archive column is missing. Would you like to PERMANENTLY DELETE this ticket instead?");
+                    if (force) {
+                        await _supabase.from('service_requests').delete().eq('id', id);
+                    }
+                }
+                
+                if (selectedId === id) {
+                    selectedId = null;
+                    document.getElementById('editor').style.display = 'none';
+                    document.getElementById('no-selection').style.display = 'flex';
+                }
+                fetchMissions();
+            }
+        }
+
+        async function updateMission() {
+            if (!selectedId) return;
+            const { error } = await _supabase.from('service_requests').update({ 
+                status: document.getElementById('edit-status').value,
+                admin_notes: document.getElementById('edit-notes').value
+            }).eq('id', selectedId);
+
+            if (!error) {
+                alert("MISSION_UPDATED: Data transmitted successfully.");
+                fetchMissions();
+            }
+        }
+
+        // Initial Load
+        fetchMissions();
+    </script>
+</body>
+</html>

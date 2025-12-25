@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dronemark | Advanced Geospatial Intelligence</title>
+    
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAxnAuRnS9HS5bjnSk-dKRYbMe5UqLsoTg&libraries=places"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        :root {
+            --navy: #0f172a; --corporate-blue: #2563eb; --accent-blue: #3b82f6;
+            --slate: #94a3b8; --bg-light: #f8fafc; --white: #ffffff; --border: #e2e8f0;
+            --danger: #ef4444; --success: #10b981;
+            --pending-gold: #eab308; --pending-bg: #fefce8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-light); color: var(--navy); display: none; overflow: hidden; }
+
+        header { 
+            background: var(--white); border-bottom: 2px solid var(--border); 
+            height: 70px; display: flex; align-items: center; padding: 0 30px;
+            position: relative; z-index: 1000;
+        }
+        .logo { font-weight: 800; font-size: 1.3rem; letter-spacing: -1px; text-decoration: none; color: inherit; }
+        .logo span { color: var(--corporate-blue); }
+
+        .dashboard { display: grid; grid-template-columns: 400px 1fr; height: calc(100vh - 70px); }
+
+        /* --- TICKETS PANEL --- */
+        .tickets-section { background: #f1f5f9; border-right: 1px solid var(--border); padding: 25px; overflow-y: auto; }
+        .ledger-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+        .ledger-header h2 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: var(--slate); }
+
+        .ticket-card { 
+            background: var(--white); border: 1px solid var(--border); 
+            padding: 20px; margin-bottom: 15px; cursor: pointer; 
+            transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 8px;
+        }
+        .status-IN_PROGRESS { border-color: var(--success); animation: glow-green 2s infinite alternate; }
+        @keyframes glow-green {
+            from { box-shadow: 0 0 5px rgba(16, 185, 129, 0.1); }
+            to { box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); border-color: var(--success); }
+        }
+
+        .card-id { font-family: 'JetBrains Mono'; font-weight: 800; color: var(--corporate-blue); font-size: 0.75rem; margin-bottom: 5px; }
+        .card-services { font-weight: 700; font-size: 0.85rem; margin-bottom: 5px; }
+        .card-addr { font-size: 0.75rem; color: #64748b; margin-bottom: 15px; }
+
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 4px; 
+            font-size: 0.65rem; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;
+            border: 1px solid #cbd5e1; background: #f1f5f9;
+        }
+        .status-PENDING_REVIEW .status-badge { background: var(--pending-bg); color: var(--pending-gold); border: 1px solid var(--pending-gold); }
+        .status-IN_PROGRESS .status-badge { background: #ecfdf5; color: var(--success); border: 1px solid var(--success); }
+
+        /* --- FORM SECTION --- */
+        .form-section { padding: 50px 10%; background: white; overflow-y: auto; }
+        .form-container { max-width: 800px; margin: 0 auto; }
+        
+        .welcome-briefing {
+            background: linear-gradient(to bottom right, #ffffff, #f1f5f9);
+            border: 1px solid var(--border); border-top: 4px solid var(--corporate-blue);
+            padding: 30px; margin-bottom: 40px; border-radius: 12px;
+        }
+
+        .step-label { font-weight: 700; font-size: 0.75rem; color: var(--slate); margin-bottom: 15px; display: block; text-transform: uppercase; letter-spacing: 1px; }
+        .checkbox-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 35px; }
+        .check-item { display: flex; align-items: center; gap: 12px; padding: 18px; border: 1px solid var(--border); font-size: 0.85rem; font-weight: 600; cursor: pointer; border-radius: 8px; background: white; }
+        
+        input[type="text"], textarea { width: 100%; padding: 15px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-light); font-size: 0.9rem; outline: none; }
+        .submit-btn { background: var(--corporate-blue); color: white; padding: 22px; border: none; font-weight: 700; cursor: pointer; width: 100%; font-size: 1rem; border-radius: 8px; }
+
+        /* --- MODAL --- */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(4px); }
+        .modal-content { background: white; width: 950px; max-width: 95vw; padding: 40px; position: relative; border-radius: 12px; }
+        #modal-map { height: 400px; background: #eee; border-radius: 8px; }
+        
+        .chat-container { margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px; }
+        .msg-bubble { background: #f0f9ff; padding: 15px; border-left: 4px solid var(--corporate-blue); margin-bottom: 15px; border-radius: 0 8px 8px 0; }
+        .reply-box { display: flex; gap: 10px; margin-top: 15px; }
+        .reply-box input { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 6px; }
+        .send-reply-btn { background: var(--corporate-blue); color: white; border: none; padding: 0 20px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="#" class="logo">DRONE<span>MARK</span></a>
+        <div style="margin-left: auto; display: flex; align-items: center; gap: 30px;">
+            <span id="user-display" style="font-family:'JetBrains Mono'; font-size:0.7rem; color:var(--slate);">SYNCING_ACCESS...</span>
+            <button onclick="signOut()" style="border: 1px solid var(--border); color: var(--slate); background:none; padding: 8px 16px; border-radius:6px; font-weight:700; cursor:pointer; font-size:0.65rem;">LOGOUT</button>
+        </div>
+    </header>
+
+    <div class="dashboard">
+        <aside class="tickets-section">
+            <div class="ledger-header">
+                <h2>Mission Queue</h2>
+                <div id="ticket-count" style="font-family:'JetBrains Mono'; font-size:0.7rem; color:var(--corporate-blue);">00_UNITS</div>
+            </div>
+            <div id="ticket-container"></div>
+        </aside>
+
+        <main class="form-section">
+            <div class="form-container">
+                <h1 style="font-weight: 800; font-size: 2.2rem; margin-bottom: 15px; letter-spacing: -1px;">Submit Service Request</h1>
+                
+                <div class="welcome-briefing">
+                    <p style="font-weight: 700; color: var(--navy); font-size: 1.1rem;">Welcome to Dronemark!</p>
+                    <p style="color: #64748b; font-size: 0.9rem; margin-top: 8px; line-height: 1.5;">Standard aerial inspection protocols start at <strong>$85.00 CAD</strong>. Our certified flight personnel will conduct a high-resolution survey of your coordinates.</p>
+                </div>
+
+                <form id="service-form">
+                    <label class="step-label">Service Type</label>
+                    <div class="checkbox-grid">
+                        <label class="check-item"><input type="checkbox" name="service" value="Residential Roof"> Residential Roof</label>
+                        <label class="check-item"><input type="checkbox" name="service" value="Gutter Survey"> Gutter Survey</label>
+                        <label class="check-item"><input type="checkbox" name="service" value="SAR"> Search & Rescue</label>
+                        <label class="check-item"><input type="checkbox" name="service" value="Construction Progress"> Site Progress</label>
+                        <label class="check-item"><input type="checkbox" name="service" value="GIS Modeling"> GIS Modeling</label>
+                        <label class="check-item"><input type="checkbox" name="service" value="Media Assets"> Media Assets</label>
+                    </div>
+
+                    <div class="form-step" style="margin-bottom:35px;">
+                        <label class="step-label">Service Address</label>
+                        <input type="text" id="address-input" placeholder="Search Physical Address..." style="margin-bottom:10px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                            <input type="text" id="city" placeholder="City" readonly>
+                            <input type="text" id="state" placeholder="State" readonly>
+                            <input type="text" id="zip" placeholder="ZIP" readonly>
+                        </div>
+                    </div>
+
+                    <div class="form-step" style="margin-bottom:35px;">
+                        <label class="step-label">Add Details about what you would like inspected:</label>
+                        <textarea id="comments" rows="4" placeholder="Enter instructions..."></textarea>
+                    </div>
+                    <button type="button" class="submit-btn" onclick="handleSubmission()">Submit Service Request</button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="ticketModal">
+        <div class="modal-content">
+            <i class="fas fa-times" style="position:absolute; top:20px; right:20px; cursor:pointer;" onclick="closeModal()"></i>
+            <h3 id="modal-id" style="color: var(--corporate-blue); font-family: 'JetBrains Mono';"></h3>
+            <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap:30px; margin-top:20px;">
+                <div id="modal-map"></div>
+                <div class="modal-info">
+                    <div id="modal-body" style="font-size: 0.85rem; line-height: 1.6;"></div>
+                    <div class="chat-container">
+                        <div id="admin-message-section"></div>
+                        <div class="reply-box">
+                            <input type="text" id="customer-reply-input" placeholder="Type a message to the pilot...">
+                            <button class="send-reply-btn" id="send-reply-btn">SEND</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const _supabase = supabase.createClient('https://udlljpqgooojcemrclms.supabase.co', 'sb_publishable_QM9w45AxLPP3L4RtPHYs_A_Zj3GOH5m');
+        let currentTickets = [];
+        let activeTicketId = null;
+        const sonarSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+
+        async function checkUser() {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (!session) { window.location.href = 'index.html'; } 
+            else {
+                document.body.style.display = 'block';
+                document.getElementById('user-display').innerText = `SESSION_ID: ${session.user.email.split('@')[0].toUpperCase()}`;
+                
+                _supabase.channel('status-updates').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'service_requests' }, payload => {
+                    if (payload.new.status === 'IN_PROGRESS' && payload.old.status !== 'IN_PROGRESS') sonarSound.play();
+                    loadTickets(session.user.id);
+                }).subscribe();
+                loadTickets(session.user.id);
+            }
+        }
+        checkUser();
+
+        async function loadTickets(userId) {
+            const { data } = await _supabase.from('service_requests').select('*').eq('user_id', userId).eq('is_deleted', false).order('created_at', { ascending: false });
+            if (data) {
+                currentTickets = data;
+                document.getElementById('ticket-count').innerText = `${data.length.toString().padStart(2, '0')}_UNITS`;
+                document.getElementById('ticket-container').innerHTML = data.map((job, index) => `
+                    <div class="ticket-card status-${job.status}" onclick="openModal(${index})">
+                        <div class="card-id">#REQ-${job.id.substring(0,8).toUpperCase()}</div>
+                        <div class="card-services">${job.services ? job.services[0] : 'GENERAL_MISSION'}</div>
+                        <div class="card-addr">${job.street_address || 'LOCATION_PENDING'}</div>
+                        <div class="status-badge">${job.status.replace('_', ' ')}</div>
+                    </div>`).join('');
+            }
+        }
+
+        function openModal(index) {
+            const t = currentTickets[index];
+            activeTicketId = t.id;
+            document.getElementById('modal-id').innerText = `DEBRIEF: #REQ-${t.id.substring(0,8).toUpperCase()}`;
+            document.getElementById('modal-body').innerHTML = `<p><strong>STATUS:</strong> ${t.status.replace('_', ' ')}</p><p><strong>LOCATION:</strong> ${t.street_address}</p><hr style="margin:15px 0; border:0; border-top:1px solid #eee;"><p><strong>Details:</strong> ${t.comments || 'No details provided.'}</p>`;
+            const adminSection = document.getElementById('admin-message-section');
+            adminSection.innerHTML = t.admin_notes ? `<div class="msg-bubble"><h4 style="font-size:0.6rem; color:var(--corporate-blue);">CORRESPONDENCE</h4><p style="white-space: pre-wrap;">${t.admin_notes}</p></div>` : `<p style="font-size:0.7rem; color:var(--slate);">Waiting for pilot response...</p>`;
+            document.getElementById('ticketModal').style.display = 'flex';
+            if(t.street_address) initMiniMap(t);
+        }
+
+        document.getElementById('send-reply-btn').onclick = async () => {
+            const input = document.getElementById('customer-reply-input');
+            if (!input.value.trim() || !activeTicketId) return;
+            const ticket = currentTickets.find(t => t.id === activeTicketId);
+            const newNotes = ticket.admin_notes ? `${ticket.admin_notes}\n\nCLIENT: ${input.value}` : `CLIENT: ${input.value}`;
+            await _supabase.from('service_requests').update({ admin_notes: newNotes }).eq('id', activeTicketId);
+            input.value = '';
+            loadTickets((await _supabase.auth.getSession()).data.session.user.id);
+            closeModal();
+        };
+
+        function initMiniMap(ticket) {
+            const geocoder = new google.maps.Geocoder();
+            geocoder.geocode({ address: `${ticket.street_address}, ${ticket.city}` }, (results, status) => {
+                if (status === "OK") {
+                    const map = new google.maps.Map(document.getElementById("modal-map"), { 
+                        zoom: 19, center: results[0].geometry.location, mapTypeId: 'satellite', disableDefaultUI: true 
+                    });
+                    new google.maps.Marker({ position: results[0].geometry.location, map: map });
+                }
+            });
+        }
+
+        function initAutocomplete() {
+            const autocomplete = new google.maps.places.Autocomplete(document.getElementById('address-input'), { types: ['address'] });
+            autocomplete.addListener('place_changed', () => {
+                const place = autocomplete.getPlace();
+                place.address_components.forEach(c => {
+                    const t = c.types[0];
+                    if (t === 'locality') document.getElementById('city').value = c.long_name;
+                    if (t === 'administrative_area_level_1') document.getElementById('state').value = c.short_name;
+                    if (t === 'postal_code') document.getElementById('zip').value = c.long_name;
+                });
+            });
+        }
+        google.maps.event.addDomListener(window, 'load', initAutocomplete);
+
+        async function handleSubmission() {
+            const services = Array.from(document.querySelectorAll('input[name="service"]:checked')).map(el => el.value);
+            const { data: { user } } = await _supabase.auth.getUser();
+            await _supabase.from('service_requests').insert([{
+                user_id: user.id, client_email: user.email, services,
+                street_address: document.getElementById('address-input').value,
+                city: document.getElementById('city').value, state: document.getElementById('state').value, 
+                zip_code: document.getElementById('zip').value, comments: document.getElementById('comments').value, 
+                status: 'PENDING_REVIEW', is_deleted: false 
+            }]);
+            location.reload();
+        }
+
+        function closeModal() { document.getElementById('ticketModal').style.display = 'none'; }
+        async function signOut() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
+    </script>
+</body>
+</html>
